@@ -26,6 +26,7 @@ wp_localize_script(
 		'builderItems' => $this->to_builder_format( $parsed_menu ),
 	)
 );
+
 ?>
 
 <div class="wrap heatbox-wrap udb-admin-bar udb-menu-builder-editor-page">
@@ -60,6 +61,7 @@ wp_localize_script(
 
 	<div class="heatbox-container heatbox-container-center heatbox-column-container">
 		<div class="heatbox-main">
+
 			<?php if ( ! udb_is_pro_active() ) : ?>
 
 				<div class="udb-pro-upgrade-nag">
@@ -74,8 +76,8 @@ wp_localize_script(
 			<?php do_action( 'udb_admin_bar_before_form' ); ?>
 
 			<form action="options.php" method="post" class="udb-menu-builder--edit-form">
-
-				<div class="heatbox udb-menu-builder-box">
+ 
+				<div class="heatbox heatbox-admin-panel udb-menu-builder-box udb-menu-builder-box-panel">
 
 					<div class="udb-menu-builder-box--header">
 						<h2 class="udb-menu-builder-box--title">
@@ -117,36 +119,10 @@ wp_localize_script(
 			</form>
 		</div>
 		<div class="heatbox-sidebar">
-			<div class="heatbox tags-heatbox">
-				<h2>
-					<?php _e( 'Placeholder Tags', 'ultimate-dashboard' ); ?>
-					<span class="action-status">📋 Copied</span>
-				</h2>
-
-				<div class="heatbox-content">
-					<p>
-						<?php _e( 'Use the placeholder tags below to display certain information dynamically.', 'ultimate-dashboard' ); ?>
-						<br><strong><?php esc_html_e( '(Click to copy)', 'ultimate-dashboard' ); ?></strong>
-					</p>
-					<div class="tags-wrapper">
-						<?php
-						$placeholder_tags = [
-							'{site_name}',
-							'{site_url}',
-						];
-
-						$placeholder_tags = apply_filters( 'udb_admin_menu_placeholder_tags', $placeholder_tags );
-						$total_tags       = count( $placeholder_tags );
-
-						foreach ( $placeholder_tags as $tag_index => $placeholder_tag ) {
-							?>
-							<code><?php echo esc_attr( $placeholder_tag ); ?></code>
-							<?php
-						}
-						?>
-					</div>
-				</div>
-			</div>
+			<?php
+			require_once __DIR__ . '/metaboxes/remove-admin-bar-metabox.php';
+			require_once __DIR__ . '/metaboxes/placeholder-tags-metabox.php';
+			?>
 
 			<?php do_action( 'udb_admin_bar_sidebar' ); ?>
 		</div>

@@ -5,7 +5,7 @@
  * @package Ultimate_Dashboard
  */
 
-namespace Udb\PluginOnboarding\Ajax;
+namespace Udb\OnboardingWizard\Ajax;
 
 /**
  * Class to manage ajax request of migration to UDB.
@@ -27,18 +27,11 @@ class Subscribe {
 	private $email;
 
 	/**
-	 * The referrer where UDB was installed from.
-	 *
-	 * @var string
-	 */
-	private $referrer;
-
-	/**
 	 * Class constructor.
 	 */
 	public function __construct() {
 
-		add_action( 'wp_ajax_udb_plugin_onboarding_subscribe', [ $this, 'handler' ] );
+		add_action( 'wp_ajax_udb_onboarding_wizard_subscribe', [ $this, 'handler' ] );
 
 	}
 
@@ -64,7 +57,7 @@ class Subscribe {
 		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
 
 		// Check if nonce is incorrect.
-		if ( ! wp_verify_nonce( $nonce, 'udb_plugin_onboarding_subscribe_nonce' ) ) {
+		if ( ! wp_verify_nonce( $nonce, 'udb_onboarding_wizard_subscribe_nonce' ) ) {
 			wp_send_json_error( __( 'Invalid token', 'ultimate-dashboard' ), 401 );
 		}
 
@@ -79,8 +72,6 @@ class Subscribe {
 		if ( empty( $this->email ) ) {
 			wp_send_json_error( __( 'Email field is empty', 'ultimate-dashboard' ), 401 );
 		}
-
-		$this->referrer = isset( $_POST['referrer'] ) ? sanitize_text_field( wp_unslash( $_POST['referrer'] ) ) : '';
 	}
 
 	/**
@@ -90,7 +81,7 @@ class Subscribe {
 
 		// Mailerlite related vars.
 		$mailerlite_api_key  = '17ca6c148dc69064b0f4f409776be3b8';
-		$mailerlite_group_id = '111311793';
+		$mailerlite_group_id = '112818510';
 		$mailerlite_api_url  = "https://api.mailerlite.com/api/v2/groups/$mailerlite_group_id/subscribers";
 
 		$mailerlite_subscriber = [
@@ -111,17 +102,12 @@ class Subscribe {
 			]
 		);
 
-		if ( ! is_wp_error( $response ) ) {
-			if ( 'erident' === $this->referrer ) {
-				delete_option( 'udb_migration_from_erident' );
-			} elseif ( 'kirki' === $this->referrer ) {
-				delete_option( 'udb_referred_by_kirki' );
-			}
-
-			wp_send_json_success( __( 'Subscription done', 'ultimate - dashboard' ) );
+		if ( is_wp_error( $response ) ) {
+			wp_send_json_error( $response->get_error_message(), 403 );
 		}
 
-		wp_send_json_error( $response->get_error_message(), 403 );
+		update_option( 'udb_onboarding_wizard_completed', true );
+		wp_send_json_success( __( 'Subscription done', 'ultimate-dashboard' ) );
 
 	}
 

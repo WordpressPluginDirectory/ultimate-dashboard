@@ -120,6 +120,15 @@ class Backwards_Compatibility {
 			update_option( 'udb_settings', array() );
 		}
 
+		if ( isset( $udb_settings['remove_admin_bar'] ) && ! is_array( $udb_settings['remove_admin_bar'] ) ) {
+			/**
+			 * The previous format was just checkbox,
+			 * so we need to convert it to new format which is array (by roles).
+			 */
+			$udb_settings['remove_admin_bar'] = [ 'all' ];
+			update_option( 'udb_settings', $udb_settings );
+		}
+
 		if ( get_option( 'removeallwidgets' ) ) {
 			$udb_settings['remove-all'] = 1;
 			update_option( 'udb_settings', $udb_settings );

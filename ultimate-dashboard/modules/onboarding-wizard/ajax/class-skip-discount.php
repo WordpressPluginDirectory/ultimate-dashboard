@@ -5,7 +5,7 @@
  * @package Ultimate_Dashboard
  */
 
-namespace Udb\PluginOnboarding\Ajax;
+namespace Udb\OnboardingWizard\Ajax;
 
 /**
  * Class to manage ajax request of migration to UDB.
@@ -13,18 +13,11 @@ namespace Udb\PluginOnboarding\Ajax;
 class SkipDiscount {
 
 	/**
-	 * The referrer where UDB was installed from.
-	 *
-	 * @var string
-	 */
-	private $referrer;
-
-	/**
 	 * Class constructor.
 	 */
 	public function __construct() {
 
-		add_action( 'wp_ajax_udb_plugin_onboarding_skip_discount', [ $this, 'handler' ] );
+		add_action( 'wp_ajax_udb_onboarding_wizard_skip_discount', [ $this, 'handler' ] );
 
 	}
 
@@ -50,11 +43,9 @@ class SkipDiscount {
 		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
 
 		// Check if nonce is incorrect.
-		if ( ! wp_verify_nonce( $nonce, 'udb_plugin_onboarding_skip_discount_nonce' ) ) {
+		if ( ! wp_verify_nonce( $nonce, 'udb_onboarding_wizard_skip_discount_nonce' ) ) {
 			wp_send_json_error( __( 'Invalid token', 'ultimate-dashboard' ), 401 );
 		}
-
-		$this->referrer = isset( $_POST['referrer'] ) ? sanitize_text_field( wp_unslash( $_POST['referrer'] ) ) : '';
 
 	}
 
@@ -63,12 +54,7 @@ class SkipDiscount {
 	 */
 	private function skip_discount() {
 
-		if ( 'erident' === $this->referrer ) {
-			delete_option( 'udb_migration_from_erident' );
-		} elseif ( 'kirki' === $this->referrer ) {
-			delete_option( 'udb_referred_by_kirki' );
-		}
-
+		update_option( 'udb_onboarding_wizard_completed', 1 );
 		wp_send_json_success( __( 'Discount skipped', 'ultimate-dashboard' ) );
 
 	}

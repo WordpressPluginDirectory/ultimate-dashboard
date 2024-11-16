@@ -13,6 +13,7 @@ use WP_Admin_Bar;
 use Udb\Base\Base_Output;
 use Udb\Helpers\Content_Helper;
 use Udb\Widget\Widget_Output;
+use Udb\Helpers\Admin_Bar_Helper;
 
 /**
  * Class to set up setting output.
@@ -36,7 +37,7 @@ class Setting_Output extends Base_Output {
 	/**
 	 * Get instance of the class.
 	 *
-	 * @return object
+	 * @return self
 	 */
 	public static function get_instance() {
 
@@ -256,12 +257,15 @@ class Setting_Output extends Base_Output {
 
 	/**
 	 * Remove admin bar from frontend.
+	 *
+	 * @param string[] $roles The roles to remove the admin bar for.
 	 */
-	public function remove_admin_bar() {
+	public function remove_admin_bar( $roles = array() ) {
 
-		$settings = get_option( 'udb_settings' );
+		$admin_bar_helper = new Admin_Bar_Helper();
 
-		if ( isset( $settings['remove_admin_bar'] ) ) {
+		// Check if the admin bar should be removed.
+		if ( $admin_bar_helper->should_remove_admin_bar( $roles ) ) {
 			add_filter( 'show_admin_bar', '__return_false' );
 		}
 

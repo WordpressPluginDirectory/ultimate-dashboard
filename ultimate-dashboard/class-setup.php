@@ -80,8 +80,6 @@ class Setup {
 	 */
 	public function setup() {
 
-		$this->set_data();
-
 		/**
 		 * We use 20 as the priority in the free version
 		 * because the PRO version has to run first.
@@ -90,8 +88,12 @@ class Setup {
 		 * because the PRO version hooks some action/filter to the free version.
 		 * So in order to make them executed, the PRO version has to run first.
 		 */
+
+		register_activation_hook( ULTIMATE_DASHBOARD_PLUGIN_FILE, array( $this, 'on_plugin_activation' ), 20 );
+
 		add_action( 'plugins_loaded', array( $this, 'load_modules' ), 20 );
 		add_action( 'plugins_loaded', array( $this, 'load_plugin_onboarding_module' ), 20 );
+		add_action( 'plugins_loaded', array( $this, 'load_onboarding_wizard_module' ), 20 );
 
 		add_action( 'init', array( self::get_instance(), 'check_activation_meta' ) );
 		add_action( 'admin_menu', array( $this, 'pro_submenu' ), 20 );
@@ -160,6 +162,7 @@ class Setup {
 			'udb_widgets_page_udb_admin_menu',
 			'udb_widgets_page_udb_admin_bar',
 			'udb_widgets_page_udb_plugin_onboarding',
+			'udb_widgets_page_udb_onboarding_wizard',
 		);
 
 		$screen = get_current_screen();
@@ -185,6 +188,27 @@ class Setup {
 		$settings = array( '<a href="' . admin_url( 'edit.php?post_type=udb_widgets&page=udb_settings' ) . '">' . __( 'Settings', 'ultimate-dashboard' ) . '</a>' );
 
 		return array_merge( $links, $settings );
+
+	}
+
+	/**
+	 * Store an option that tracks the plugin activation.
+	 */
+	public function on_plugin_activation() {
+
+		// Stop if this is activation from Erident's migration to UDB.
+		if ( get_option( 'udb_migration_from_erident' ) ) {
+			// Prevent "Setup Wizard" from being shown for Erident's users.
+			update_option( 'udb_onboarding_wizard_completed', 1 );
+			return;
+		}
+
+		// We bail out early in multisite because this function will still be called in the main site.
+		if ( is_multisite() || udb_is_pro_active() ) {
+			return;
+		}
+
+		update_option( 'udb_onboarding_wizard_redirect', 1 );
 
 	}
 
@@ -279,6 +303,60 @@ class Setup {
 	}
 
 	/**
+	 * Load onboarding wizard module.
+	 */
+	public function load_onboarding_wizard_module() {
+
+		if ( is_multisite() || udb_is_pro_active() ) {
+			return;
+		}
+
+		if ( get_option( 'udb_onboarding_wizard_completed' ) ) {
+			return;
+		}
+
+		if ( get_option( 'udb_onboarding_wizard_redirect' ) ) {
+			// Redirect to onboarding wizard page.
+			add_action( 'current_screen', array( $this, 'redirect_to_onboarding_wizard_page' ), 20 );
+		}
+
+		require_once __DIR__ . '/modules/onboarding-wizard/class-onboarding-wizard-module.php';
+		$module = new OnboardingWizard\Onboarding_Wizard_Module();
+		$module->setup();
+
+	}
+
+	/**
+	 * Redirect to the Onboarding Wizard page after activate the plugin.
+	 */
+	public function redirect_to_onboarding_wizard_page() {
+
+		$current_screen = get_current_screen();
+
+		if ( is_null( $current_screen ) ) {
+			return;
+		}
+
+		// Stop if current screen is onboarding wizard page.
+		if ( 'udb_widgets_page_udb_onboarding_wizard' === $current_screen->id ) {
+			return;
+		}
+
+		// Stop if this request is not supposed to be redirected.
+		if ( ! get_option( 'udb_onboarding_wizard_redirect' ) ) {
+			return;
+		}
+
+		// Immediately delete the redirect option because redirect is supposed to happen once.
+		delete_option( 'udb_onboarding_wizard_redirect' );
+
+		// Redirect to the Onboarding Wizard page.
+		wp_safe_redirect( admin_url( 'edit.php?post_type=udb_widgets&page=udb_onboarding_wizard' ) );
+		exit;
+
+	}
+
+	/**
 	 * Generate PRO submenu link.
 	 */
 	public function pro_submenu() {
@@ -295,7 +373,7 @@ class Setup {
 
 		global $submenu;
 
-		$submenu['edit.php?post_type=udb_widgets'][] = array( 'PRO', 'manage_options', 'https://ultimatedashboard.io/pro/' );
+		$submenu['edit.php?post_type=udb_widgets'][] = array( 'Upgrade to PRO', 'manage_options', 'https://ultimatedashboard.io/pro/' );
 
 	}
 
@@ -394,15 +472,15 @@ class Setup {
 		}
 
 		// Stop here if current user is not an admin.
-		if ( ! current_user_can( 'administrator' ) ) {
+		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
 
 		// Intentional: using manually written string instead of gmdate( 'Y' ).
-		$this_year = '2023';
+		$this_year = '2024';
 		$last_year = $this_year - 1;
-		$start     = strtotime( 'november 20th, ' . $this_year );
-		$end       = strtotime( 'november 27th, ' . $this_year );
+		$start     = strtotime( 'november 22nd, ' . $this_year );
+		$end       = strtotime( 'december 2nd, ' . $this_year );
 		$now       = time();
 
 		// Stop here if we are not in the sales period.
@@ -435,7 +513,7 @@ class Setup {
 				</div>
 				<div class="notice-content">
 					<h2>
-						<?php _e( 'Up to 25% Off Ultimate Dashboard PRO - Black Friday Sale!', 'ultimate-dashboard' ); ?>
+						<?php _e( 'Black Friday Sale! - Up to 25% Off Ultimate Dashboard PRO', 'ultimate-dashboard' ); ?>
 					</h2>
 					<p>
 						<?php _e( 'Save big & upgrade to <strong>Ultimate Dashboard PRO</strong>, today!', 'ultimate-dashboard' ); ?>
@@ -558,6 +636,7 @@ class Setup {
 			delete_blog_option( $site_id, 'udb_compat_old_option' );
 
 			delete_blog_option( $site_id, 'udb_migration_from_erident' );
+			delete_blog_option( $site_id, 'udb_referred_by_kirki' );
 
 			delete_blog_option( $site_id, 'udb_login_customizer_flush_url' );
 			delete_blog_option( $site_id, 'review_notice_dismissed' );
@@ -590,12 +669,17 @@ class Setup {
 			delete_option( 'udb_compat_old_option' );
 
 			delete_option( 'udb_migration_from_erident' );
+			delete_option( 'udb_referred_by_kirki' );
 
 			delete_option( 'udb_login_customizer_flush_url' );
 			delete_option( 'review_notice_dismissed' );
 
 			delete_option( 'udb_install_date' );
 			delete_option( 'udb_plugin_activated' );
+
+			// These 2 options won't be available in multisite install.
+			delete_option( 'udb_onboarding_wizard_redirect' );
+			delete_option( 'udb_onboarding_wizard_completed' );
 
 			if ( $restore_removal_option && defined( 'ULTIMATE_DASHBOARD_PRO_PLUGIN_VERSION' ) ) {
 				update_option( $site_id, 'udb_settings', array( 'remove-on-uninstall' => 1 ) );
