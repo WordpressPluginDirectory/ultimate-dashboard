@@ -445,9 +445,7 @@ class Setup {
 	 */
 	public function dismiss_review_notice() {
 
-		$dismiss = isset( $_POST['dismiss'] ) ? absint( $_POST['dismiss'] ) : 0;
-
-		if ( empty( $dismiss ) ) {
+		if ( empty( $_POST['dismiss'] ) ) {
 			wp_send_json_error( 'Invalid Request' );
 		}
 
@@ -540,13 +538,11 @@ class Setup {
 	 */
 	public function dismiss_bfcm_notice() {
 
-		$dismiss = isset( $_POST['dismiss'] ) ? absint( $_POST['dismiss'] ) : 0;
-
-		if ( empty( $dismiss ) ) {
+		if ( empty( $_POST['dismiss'] ) ) {
 			wp_send_json_error( 'Invalid Request' );
 		}
 
-		update_option( 'udb_bfcm_notice_dismissed_2023', 1 );
+		update_option( 'udb_bfcm_notice_dismissed_2024', 1 );
 		wp_send_json_success( 'Review notice has been dismissed.' );
 
 	}

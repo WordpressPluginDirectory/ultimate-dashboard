@@ -45,10 +45,16 @@ class Save_Remove_By_Roles {
 	 */
 	public function validate() {
 
-		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( $_POST['nonce'] ) : '';
+		$nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
 
 		if ( ! wp_verify_nonce( $nonce, 'udb_admin_bar_save_remove_by_roles' ) ) {
 			wp_send_json_error( __( 'Invalid token', 'ultimate-dashboard' ) );
+		}
+
+		$capability = apply_filters( 'udb_settings_capability', 'manage_options' );
+
+		if ( ! current_user_can( $capability ) ) {
+			wp_send_json_error( __( 'You do not have permission to perform this action', 'ultimate-dashboard' ) );
 		}
 
 		$roles = isset( $_POST['roles'] ) ? $_POST['roles'] : [];

@@ -4,7 +4,7 @@ Tags: Custom Dashboard, Admin Menu Editor, Custom Login Screen, Custom WordPress
 Requires at least: 4.6
 Tested up to: 6.7
 Requires PHP: 5.6
-Stable tag: 3.8.4
+Stable tag: 3.8.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -103,6 +103,17 @@ For multisite support & more check out [Ultimate Dashboard PRO](https://ultimate
 11. Modules Screen
 
 == Changelog ==
+= 3.8.8 | March 15, 2025 =
+* Fixed: Issue where relative path URLs were broken in icon widgets
+* Fixed: Security vulnerability (CVE-2025-2276) that allowed users with limited capabilities to enable/disable modules via AJAX
+* Fixed: Security vulnerability that allowed users with limited capabilities to access AJAX across modules
+= 3.8.7 | March 12, 2025 =
+* Fixed: Issue where links weren't saved in text widgets
+= 3.8.6 | March 3, 2025 =
+* Fixed: XSS vulnerabilities in the edit widget and edit admin page screens
+* Tweak: Additional security enhancements
+= 3.8.5 | November 22, 2024 =
+* Fixed: BFCM notice wasn't dismissible
 = 3.8.4 | November 15, 2024 =
 * Tested up to WordPress 6.7
 * Fixed: Issue where custom login page logo won't show after the release of WordPress 6.7
