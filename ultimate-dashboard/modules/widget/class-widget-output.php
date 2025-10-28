@@ -178,7 +178,7 @@ class Widget_Output extends Base_Output {
 
 				$output = sprintf(
 					'<div class="udb-html-wrapper">%1s</div>',
-					wp_kses_post( $content )
+					wp_kses_post( do_shortcode( $content ) )
 				);
 
 				$output = $this->convert_placeholder_tags( $output );
@@ -237,7 +237,7 @@ class Widget_Output extends Base_Output {
 			$output = apply_filters( 'udb_widget_output', $output, $output_args );
 
 			$output_callback = function () use ( $output ) {
-				echo $output;
+				echo wp_kses_post( $output );
 			};
 
 			// Add metabox.
